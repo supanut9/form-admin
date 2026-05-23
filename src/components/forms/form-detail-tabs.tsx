@@ -16,6 +16,9 @@ const TABS = [
   { key: "builder", label: "Builder" },
   { key: "submissions", label: "Submissions" },
   { key: "versions", label: "Versions" },
+  { key: "logic", label: "Logic" },
+  { key: "scoring", label: "Scoring" },
+  { key: "actions", label: "Actions" },
 ] as const;
 
 export function FormDetailTabs({ formId, title, slug, archived }: Props) {

@@ -14,12 +14,14 @@ import {
   IconSettings,
   IconUser,
   IconLogout,
+  IconTemplate,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import type { SessionAccount } from "@/lib/session";
 
 const navLinks = [
   { href: "/forms", label: "Forms", icon: IconFileText },
+  { href: "/templates", label: "Templates", icon: IconTemplate },
   { href: "/events", label: "Events", icon: IconCalendarEvent },
   { href: "/settings", label: "Settings", icon: IconSettings },
 ];

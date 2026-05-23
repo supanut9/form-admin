@@ -123,6 +123,44 @@ export interface FormPrefillConfig {
   submit_behavior: 'append' | 'replace'
 }
 
+// ── Phase 3A — Calculations ───────────────────────────────────────────────────
+export interface FormCalculation {
+  id: string
+  label: string
+  formula: string
+  hidden?: boolean
+}
+
+// ── Phase 3A — Scoring ────────────────────────────────────────────────────────
+export interface ScoringRule {
+  if: JsonLogicRule
+  then: { add: number } | { set: number }
+}
+
+export interface ScoringBucket {
+  min: number
+  max: number
+  label: string
+}
+
+export interface FormScoring {
+  enabled: boolean
+  rules: ScoringRule[]
+  buckets?: ScoringBucket[]
+}
+
+// ── Phase 3A — Actions ────────────────────────────────────────────────────────
+export type ActionDo =
+  | { jump_to_page: string }
+  | { skip_pages: string[] }
+
+export interface FormAction {
+  trigger: 'page_exit'
+  page_id: string
+  if: JsonLogicRule
+  do: ActionDo
+}
+
 // ── FormSpec (root document) ──────────────────────────────────────────────────
 export interface FormSpec {
   id: string
@@ -136,4 +174,8 @@ export interface FormSpec {
   thank_you?: FormThankYou
   submit?: FormSubmitConfig
   prefill?: FormPrefillConfig
+  // Phase 3A extensions (all optional — older specs remain valid)
+  calculations?: FormCalculation[]
+  scoring?: FormScoring
+  actions?: FormAction[]
 }

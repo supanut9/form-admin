@@ -13,8 +13,16 @@ import {
   TextInput,
   Select,
   Modal,
+  SimpleGrid,
+  Card,
+  Divider,
+  ScrollArea,
 } from '@mantine/core'
-import { IconFileText, IconPlus } from '@tabler/icons-react'
+import {
+  IconFileText,
+  IconPlus,
+  IconTemplate,
+} from '@tabler/icons-react'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
@@ -23,6 +31,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { formClient } from '@/lib/form-client'
+import { TemplateGallery } from '@/components/templates/template-gallery'
 
 interface FormRow {
   id: string
@@ -55,7 +64,22 @@ export default function FormsPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const { data: forms, isLoading, isError } = useFormsList()
-  const [modalOpen, { open, close }] = useDisclosure(false)
+  // "New form" 2-step modal state
+  const [newFormModalOpen, { open: openNewFormModal, close: closeNewFormModal }] = useDisclosure(false)
+  // step: 'choose' → pick blank or template | 'blank' → fill in details | 'template' → gallery
+  const [newFormStep, setNewFormStep] = useState<'choose' | 'blank' | 'template'>('choose')
+
+  function openNewForm() {
+    setNewFormStep('choose')
+    openNewFormModal()
+  }
+
+  function closeNewForm() {
+    closeNewFormModal()
+    // Reset to choose after the modal closing animation
+    setTimeout(() => setNewFormStep('choose'), 200)
+  }
+
   const [dupModalOpen, { open: openDupModal, close: closeDupModal }] = useDisclosure(false)
   const [duplicateFor, setDuplicateFor] = useState<FormRow | null>(null)
 
@@ -134,7 +158,7 @@ export default function FormsPage() {
       <Stack>
         <Group justify="space-between">
           <Title order={2}>Forms</Title>
-          <Button leftSection={<IconPlus size={16} />} onClick={open}>
+          <Button leftSection={<IconPlus size={16} />} onClick={openNewForm}>
             New form
           </Button>
         </Group>
@@ -225,40 +249,121 @@ export default function FormsPage() {
         )}
       </Stack>
 
-      <Modal opened={modalOpen} onClose={close} title="New form" size="sm">
-        <form onSubmit={form.onSubmit(handleCreate)}>
+      {/* 2-step New Form modal */}
+      <Modal
+        opened={newFormModalOpen}
+        onClose={closeNewForm}
+        title="New form"
+        size={newFormStep === 'template' ? 'xl' : 'sm'}
+      >
+        {newFormStep === 'choose' && (
           <Stack gap="sm">
-            <TextInput
-              label="Title"
-              placeholder="Language Profile"
-              required
-              {...form.getInputProps('title')}
-            />
-            <TextInput
-              label="Slug"
-              placeholder="language-profile"
-              required
-              description="URL-safe identifier. Lowercase, hyphens only."
-              {...form.getInputProps('slug')}
-            />
-            <Select
-              label="Type"
-              data={[
-                { value: 'dynamic', label: 'Dynamic (Google Forms style)' },
-                { value: 'main', label: 'Main (auth profile — Phase 2)' },
-              ]}
-              {...form.getInputProps('type')}
-            />
-            <Group justify="flex-end" mt="sm">
-              <Button variant="light" onClick={close} disabled={createMutation.isPending}>
-                Cancel
-              </Button>
-              <Button type="submit" loading={createMutation.isPending}>
-                Create
-              </Button>
-            </Group>
+            <Text size="sm" c="dimmed">
+              How would you like to start?
+            </Text>
+            <SimpleGrid cols={2} spacing="sm">
+              <Card
+                withBorder
+                padding="lg"
+                radius="md"
+                style={{ cursor: 'pointer', textAlign: 'center' }}
+                onClick={() => setNewFormStep('blank')}
+              >
+                <Stack align="center" gap="xs">
+                  <IconFileText size={36} color="var(--mantine-color-indigo-6)" />
+                  <Text fw={600}>Start blank</Text>
+                  <Text size="xs" c="dimmed">
+                    Build your form from scratch.
+                  </Text>
+                </Stack>
+              </Card>
+              <Card
+                withBorder
+                padding="lg"
+                radius="md"
+                style={{ cursor: 'pointer', textAlign: 'center' }}
+                onClick={() => setNewFormStep('template')}
+              >
+                <Stack align="center" gap="xs">
+                  <IconTemplate size={36} color="var(--mantine-color-violet-6)" />
+                  <Text fw={600}>From template</Text>
+                  <Text size="xs" c="dimmed">
+                    Start with a pre-built layout.
+                  </Text>
+                </Stack>
+              </Card>
+            </SimpleGrid>
           </Stack>
-        </form>
+        )}
+
+        {newFormStep === 'blank' && (
+          <>
+            <Anchor
+              component="button"
+              size="xs"
+              c="dimmed"
+              mb="sm"
+              onClick={() => setNewFormStep('choose')}
+            >
+              &larr; Back
+            </Anchor>
+            <form onSubmit={form.onSubmit(handleCreate)}>
+              <Stack gap="sm">
+                <TextInput
+                  label="Title"
+                  placeholder="Language Profile"
+                  required
+                  {...form.getInputProps('title')}
+                />
+                <TextInput
+                  label="Slug"
+                  placeholder="language-profile"
+                  required
+                  description="URL-safe identifier. Lowercase, hyphens only."
+                  {...form.getInputProps('slug')}
+                />
+                <Select
+                  label="Type"
+                  data={[
+                    { value: 'dynamic', label: 'Dynamic (Google Forms style)' },
+                    { value: 'main', label: 'Main (auth profile — Phase 2)' },
+                  ]}
+                  {...form.getInputProps('type')}
+                />
+                <Group justify="flex-end" mt="sm">
+                  <Button
+                    variant="light"
+                    onClick={closeNewForm}
+                    disabled={createMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" loading={createMutation.isPending}>
+                    Create
+                  </Button>
+                </Group>
+              </Stack>
+            </form>
+          </>
+        )}
+
+        {newFormStep === 'template' && (
+          <>
+            <Anchor
+              component="button"
+              size="xs"
+              c="dimmed"
+              mb="sm"
+              onClick={() => setNewFormStep('choose')}
+            >
+              &larr; Back
+            </Anchor>
+            <Divider mb="sm" />
+            <ScrollArea h={480} offsetScrollbars>
+              <TemplateGallery compact onStartBlank={() => setNewFormStep('blank')} />
+            </ScrollArea>
+          </>
+        )}
       </Modal>
 
       <Modal
