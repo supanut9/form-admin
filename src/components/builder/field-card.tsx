@@ -141,7 +141,7 @@ export function FieldCard({ field, pageId, onDuplicate }: FieldCardProps) {
                 </Badge>
               </Tooltip>
             )}
-            {field.show_if && (
+            {field.show_if != null && (
               <Tooltip label="Conditional — only shown when rule matches" withArrow>
                 <Badge
                   size="xs"

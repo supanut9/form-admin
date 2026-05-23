@@ -64,23 +64,6 @@ export function StatsCard({ formId }: { formId: string }) {
             color="indigo"
             fillOpacity={0.15}
             trendColors={{ positive: "teal", negative: "red", neutral: "indigo" }}
-            tooltipProps={{
-              content: ({ payload }) => {
-                if (!payload?.length) return null;
-                const idx = payload[0]?.index as number | undefined;
-                if (idx == null) return null;
-                const point = data.points[idx];
-                if (!point) return null;
-                return (
-                  <Paper px="xs" py={4} withBorder shadow="sm" radius="sm">
-                    <Text size="xs">
-                      {point.count} submission{point.count === 1 ? "" : "s"} on{" "}
-                      {point.day}
-                    </Text>
-                  </Paper>
-                );
-              },
-            }}
           />
         ) : (
           <Text size="sm" c="dimmed" ta="center" py="xs">
