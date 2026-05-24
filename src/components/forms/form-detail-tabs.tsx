@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Group, Title, Text, Badge, Anchor, Box } from "@mantine/core";
-import { IconChevronLeft, IconCreditCard, IconChartBar } from "@tabler/icons-react";
+import { IconChevronLeft, IconCreditCard, IconChartBar, IconAB2 } from "@tabler/icons-react";
 
 interface Props {
   formId: string;
@@ -21,6 +21,7 @@ const TABS = [
   { key: "actions", label: "Actions", icon: null },
   { key: "payments", label: "Payments", icon: IconCreditCard },
   { key: "analytics", label: "Analytics", icon: IconChartBar },
+  { key: "experiments", label: "Experiments", icon: IconAB2 },
 ] as const;
 
 export function FormDetailTabs({ formId, title, slug, archived }: Props) {
