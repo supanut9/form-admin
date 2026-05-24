@@ -10,6 +10,7 @@
  */
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
+import { WorkspaceContextProvider } from "@/lib/workspace-context";
 import AdminShell from "./shell";
 
 export default async function AdminLayout({
@@ -23,5 +24,9 @@ export default async function AdminLayout({
     redirect("/auth/login");
   }
 
-  return <AdminShell session={session}>{children}</AdminShell>;
+  return (
+    <WorkspaceContextProvider>
+      <AdminShell session={session}>{children}</AdminShell>
+    </WorkspaceContextProvider>
+  );
 }

@@ -5,7 +5,26 @@
  * forwards it as Authorization: Bearer <token>.
  * Client-side: relies on the session cookie being included automatically
  * by the browser (same-site, httpOnly). We do not expose the token to JS.
+ *
+ * Workspace header (3C):
+ * WorkspaceContextProvider calls setWorkspaceSlug(slug) on every context
+ * change. The value is stored in a module-local variable so it survives
+ * re-renders without restructuring the client. On the server side the
+ * variable is never set (each RSC invocation is isolated), so server calls
+ * are unaffected — the workspace middleware auto-resolves there.
  */
+
+// Module-local workspace slug — written by WorkspaceContextProvider.
+export const WORKSPACE_HEADER_KEY = 'X-Workspace-Id'
+let _currentWorkspaceSlug: string | null = null
+
+/**
+ * Called by WorkspaceContextProvider whenever the active workspace changes.
+ * Non-invasive: does not affect server-side usage.
+ */
+export function setWorkspaceSlug(slug: string | null): void {
+  _currentWorkspaceSlug = slug
+}
 
 // Server-side: hit form-api directly with a forwarded Bearer header.
 // Browser-side: go through the same-origin Next API proxy (/api/proxy/*) so
@@ -46,11 +65,17 @@ async function request<T>(method: string, path: string, options: RequestOptions 
   const { body, headers: extraHeaders, ...rest } = options
   const authHeader = await buildAuthHeader()
 
+  const workspaceHeader: Record<string, string> =
+    typeof window !== 'undefined' && _currentWorkspaceSlug
+      ? { [WORKSPACE_HEADER_KEY]: _currentWorkspaceSlug }
+      : {}
+
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
       ...authHeader,
+      ...workspaceHeader,
       ...(extraHeaders as Record<string, string> | undefined),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -65,6 +90,23 @@ async function request<T>(method: string, path: string, options: RequestOptions 
     } catch {
       // not JSON
     }
+
+    // Multi-workspace disambiguation: redirect to the workspace selector.
+    // Only applies client-side; server-side RSC calls don't touch the router.
+    if (
+      res.status === 400 &&
+      typeof window !== 'undefined' &&
+      parsed !== null &&
+      typeof parsed === 'object' &&
+      (parsed as Record<string, unknown>)['code'] === 'workspace_required'
+    ) {
+      const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
+      window.location.replace(`/workspaces/select?returnTo=${returnTo}`)
+      // Returning a never-resolving promise is intentional — the page will
+      // navigate away before any caller can act on this.
+      return new Promise<T>(() => undefined)
+    }
+
     const err = new Error(`form-api ${method} ${path} → ${res.status}: ${text}`) as ApiError
     err.status = res.status
     err.body = parsed

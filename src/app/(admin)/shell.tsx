@@ -18,6 +18,7 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 import type { SessionAccount } from "@/lib/session";
+import { WorkspaceSwitcher } from "@/components/workspaces/workspace-switcher";
 
 const navLinks = [
   { href: "/forms", label: "Forms", icon: IconFileText },
@@ -84,6 +85,7 @@ export default function AdminShell({ session, children }: AdminShellProps) {
       </AppShell.Header>
 
       <AppShell.Navbar p="xs">
+        <WorkspaceSwitcher />
         {navLinks.map(({ href, label, icon: Icon }) => (
           <NavLink
             key={href}
