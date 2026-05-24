@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Group, Title, Text, Badge, Anchor, Box } from "@mantine/core";
-import { IconChevronLeft } from "@tabler/icons-react";
+import { IconChevronLeft, IconCreditCard } from "@tabler/icons-react";
 
 interface Props {
   formId: string;
@@ -13,12 +13,13 @@ interface Props {
 }
 
 const TABS = [
-  { key: "builder", label: "Builder" },
-  { key: "submissions", label: "Submissions" },
-  { key: "versions", label: "Versions" },
-  { key: "logic", label: "Logic" },
-  { key: "scoring", label: "Scoring" },
-  { key: "actions", label: "Actions" },
+  { key: "builder", label: "Builder", icon: null },
+  { key: "submissions", label: "Submissions", icon: null },
+  { key: "versions", label: "Versions", icon: null },
+  { key: "logic", label: "Logic", icon: null },
+  { key: "scoring", label: "Scoring", icon: null },
+  { key: "actions", label: "Actions", icon: null },
+  { key: "payments", label: "Payments", icon: IconCreditCard },
 ] as const;
 
 export function FormDetailTabs({ formId, title, slug, archived }: Props) {
@@ -71,6 +72,7 @@ export function FormDetailTabs({ formId, title, slug, archived }: Props) {
         <Group gap={4} style={{ flexShrink: 0 }}>
           {TABS.map((tab) => {
             const isActive = tab.key === activeKey;
+            const Icon = tab.icon;
             return (
               <Anchor
                 key={tab.key}
@@ -88,8 +90,12 @@ export function FormDetailTabs({ formId, title, slug, archived }: Props) {
                     ? "var(--mantine-color-indigo-7)"
                     : "var(--mantine-color-gray-7)",
                   fontWeight: isActive ? 600 : 500,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
               >
+                {Icon && <Icon size={13} />}
                 {tab.label}
               </Anchor>
             );
